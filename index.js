@@ -23,6 +23,7 @@ fs.readFile("./index.html",(err,html)=>{
 
   http.createServer(function(req, res) { 
   let body='';
+  let 
 
   res.writeHeader(200, {"Content-Type": "text/html"});  
   res.write(html);  
@@ -51,11 +52,7 @@ console.log("Server started on "+PORT);
 
 
 
-
-
-
-
-async function main() {
+async function liker(uname,pword,bool2step) {
   //reading the given hashtags
 
   let tags = ""; //declaring the variable that will store the values stored in "Tags.txt"
@@ -116,10 +113,12 @@ async function main() {
 
   //wait for popup window to disappear and login inputs get visible
   await page.waitForTimeout(2500);
+  /*
   let bool2step;
   let uname;
   let pword;
-
+  */
+ 
   /**
    * -------------
    * -IF ELSE- FOR 2 STEP AUTH WHETHER IT IS ENABLED OR NOT
@@ -362,8 +361,8 @@ After click wait for page loading in otherwise the input field for 2step auth wo
   //}
 
   /**
-   * end of main
+   * end of liker
    **/
 }
 
-//main();
+//liker();
