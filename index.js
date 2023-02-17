@@ -1,6 +1,7 @@
 //including http basic module to create UI
 const http=require("http");
-
+const url=require("url");
+const qs=require("querystring");
 
 //including puppeteer "web browser manipulator"
 const puppeteer = require("puppeteer");
@@ -16,43 +17,36 @@ const { Console } = require("console");
 
 const PORT=8080; 
 
-fs.readFile('./index.html', function (err, html) {
+fs.readFile("./index.html",(err,html)=>{
 
-    if (err) throw err;    
+  if(err){throw err}
 
-    http.createServer(function(req, res) { 
-            //express-el lehet könnyebb gyorsabb
-        let body='';
+  http.createServer(function(req, res) { 
+  let body='';
 
-        res.writeHeader(200, {"Content-Type": "text/html"});  
-        res.write(html);
-        console.log(body);
+  res.writeHeader(200, {"Content-Type": "text/html"});  
+  res.write(html);  
+  res.end();
+  
+  if(req.method === 'POST')
+  {
+  
+  req.on("data",data=>{
+    body+=data;
+  });
+  
+  req.on("end",()=>{
+    var post = qs.parse(body);
+    console.log(post);
 
-        if(req.method === 'POST')
-        {
-            req.on('data', (data) => {
-        
-                body += data;
-        
-            });
-        
-        
-            req.on('end', () => {
-        
-                res.writeHead(200, {'Content-Type' : 'text/html'});
-        
-                res.write(body, () => {
-        
-                    res.end();
-        
-                });
-        
-            });
-        }
-
-        
-    }).listen(PORT);
+  });
+  
+  }
+  }).listen(PORT);
 });
+
+
+
 console.log("Server started on "+PORT);
 
 
