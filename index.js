@@ -430,9 +430,9 @@ After click wait for page loading in otherwise the input field for 2step auth wo
     }
   }
 
-  /**
+
   em.emit("likedLinks",goodLinks);
-  */
+
   
   
   //console.log("Content of goodLinks:\n");
