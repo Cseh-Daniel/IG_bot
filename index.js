@@ -27,6 +27,17 @@ class User{
     this.passw=passw;
     this.verifCode=null;
     this.verifBool=null;
+    this.links=[];
+  }
+
+  get posts(){
+
+    return this.links;
+
+  }
+
+  set posts(data){
+    this.links=data;
   }
 
   get name(){
@@ -89,26 +100,46 @@ console.log(myUser.toString());
       console.log("verif");
       res.write(fs.readFileSync("./verif.html","utf-8"));
       res.end();
+    }else if(req.url=='/likedLinks'){
+      /*
+          az összes link kiíratását inkább tegyük csak txt-be
+          vagy csak annyit írjunk ki h éppen melyik hashtag linkjeinél járunk
+      */
+
+      let cssInclude='<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">';
+      let scriptInclude='<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>';
+
+      let content="<html><head><title>Links</title>"+cssInclude+"</head><body>"+scriptInclude+"<table class='table table-striped'>"
+      for (i in myUser.posts){
+  
+        content+="<tr><td><a href='"+myUser.posts[i]+"'target='_blank'>"+myUser.posts[i]+"</a></td></tr>";
+      }
+      content+="</table></body></html>";
+      //console.log(content);
+      res.write(content);
+      res.end();
+
     }
+  
   }
  
-  
-
-/*
-    redirectet megkell csinálni
-    talán
-    if(req.method==='GET'){
-      if(req.url=='/'){...}
-      if(req.url=='/verifCode'){...}
-    }
-*/
 
   em.on("verifNeeded",()=>{
     console.log("\nVerif\tNeeded\n");
     res.writeHeader(302, {'Location': '/verifCode'});
-    res.write(fs.readFileSync("./verif.html","utf-8"));
+    //res.write(fs.readFileSync("./verif.html","utf-8"));
     res.end();
 
+  });
+
+  em.once("likedLinks",(data)=>{
+    console.log("Links arrieved");
+    //console.log(data);
+    res.writeHeader(302, {'Location': '/likedLinks'});
+
+    myUser.posts=data;
+
+    res.end();
   });
 
   if(req.method === 'POST')
@@ -133,6 +164,7 @@ console.log(myUser.toString());
 
             myUser.verifCode=post["verifCode"];
             console.log(myUser.name+" - "+myUser.verifcode);
+            //res.end();
             //em.emit("verifSuccess","Verification code successfully given!");
           }
 
@@ -214,7 +246,7 @@ async function liker(uname,pword,bool2step) {
   let pword;
   */
 
-  /**
+  /*
    * -------------
    * -IF ELSE- FOR 2 STEP AUTH WHETHER IT IS ENABLED OR NOT
    * -------------
@@ -291,10 +323,9 @@ After click wait for page loading in otherwise the input field for 2step auth wo
 
       /*authCode = await new Promise((el) => {
         readline.question("Your 2-step verification code:", el);
-      
       });*/
 
-      em.emit("verifNeeded");
+       em.emit("verifNeeded");
       
       while(myUser.verifcode==null){
         await page.waitForTimeout(2000);
@@ -304,12 +335,6 @@ After click wait for page loading in otherwise the input field for 2step auth wo
         await elements[0].type(myUser.verifcode);
         elements = await page.$$("button[type=button]");
         await elements[0].click();
-
-      /*
-      await elements[0].type(authCode);
-      elements = await page.$$("button[type=button]");
-      await elements[0].click();
-      */
   }
   console.log("\nStart network idle wait seconds----\n");
   //await page.waitForTimeout(2500);
@@ -348,6 +373,7 @@ After click wait for page loading in otherwise the input field for 2step auth wo
   for (i in elements) {
     let text = await page.evaluate((el) => el.textContent, elements[i]);
     //console.log("\n"+text+"\n");
+
     if (text.includes("Most nem") || text.includes("Not Now")) {
       element = elements[i];
       console.log("megtaláltam! notify");
@@ -363,23 +389,6 @@ After click wait for page loading in otherwise the input field for 2step auth wo
    *
    */
 
-  //elements=await page.$$("[aria-label='Keresett szöveg']");
-
-  /**
-   * locating searchbar and utilizing it
-   */
-
-  //let sb; //SearchBar
-  //sb=await page.$$("input[placeholder=Search]");
-  //console.log("elements:\n"+sb+"\n"+sb.length);
-  //await sb[0].type(tags[0]);
-  //await page.keyboard.press('Enter');
-  //await page.keyboard.press('Enter');
-
-  /**
-   * Searchbar end
-   */
-
   /**
    * using links instead of SearchBar for hashtags
    * https://www.instagram.com/explore/tags/?tag?/
@@ -387,23 +396,20 @@ After click wait for page loading in otherwise the input field for 2step auth wo
    * eg:https://www.instagram.com/explore/tags/kingdomhearts/
    */
 
-  let tag;
   let url = "https://www.instagram.com/explore/tags/";
+  
   url = url.concat(tags[0].slice(1), "/");
   console.log(url);
   await page.goto(url);
 
-  //await page.waitForTimeout(2500);
-
-  //await page.waitForNetworkIdle(/*{idleTime:1500}*/);//?? iz det gúd
-
   try {
     await page.waitForTimeout(5000);
+    
     //await page.waitForNetworkIdle();
     //await page.waitForNetworkIdle({idleTime:1500});
     //await page.waitForNavigation({waitUntil: 'networkidle2'});
+  
   } catch (err) {
-    //console.log(err+"\n\nError While waiting after "+url);
     console.log("");
   }
 
@@ -423,10 +429,16 @@ After click wait for page loading in otherwise the input field for 2step auth wo
       goodLinks.push(link);
     }
   }
-  console.log("Content of goodLinks:\n");
-  console.log(goodLinks);
 
-  //------- No need for dropping the first 9 posts synce it won't unlike them if already liked
+  /**
+  em.emit("likedLinks",goodLinks);
+  */
+  
+  
+  //console.log("Content of goodLinks:\n");
+  //console.log(goodLinks);
+
+  //-------------------- No need for dropping the first 9 posts synce it won't unlike them if already liked
 
   //dropping first 9 links cuz they are the popular ones and usually they are the same 9, and not changing a for a long while
 
@@ -438,40 +450,29 @@ After click wait for page loading in otherwise the input field for 2step auth wo
 
   //for(i in goodLinks){
 
-  await page.goto(goodLinks[0]);
-  await page.waitForTimeout(4000);
-  console.log("looking for Like button");
+      await page.goto(goodLinks[0]);
+      //await page.goto(goodLinks[i]);
 
-  buttons = await page.$$("button");
+      await page.waitForTimeout(4000);
+      console.log("looking for Like button");
 
-  /*megtaláljuk a Tetszik szöveget, de nem kattintható mert az svg van elmentve nekünk a gomb kellene valahogy
-            ha kikérjük az összes gombot és a benne levő tartalmat ellenőrizzük le talén működhet
-            await page.$eval('button', e => e.innerHTML)
-        */
+      buttons = await page.$$("button");
 
-
-  let like = [];
-  //like.push(99999);
-  for (i in buttons) {
-    let j = await page.evaluate((el) => el.innerHTML, buttons[i]);
-    //like=(j.includes('aria-label="Tetszik"')) ? like.push(i):like;
-
-    if (j.includes('aria-label="Tetszik"')) {
-      like.push(i);
-      console.log("pushed to like:" + i);
-    }
-
-    console.log(
-      j.includes('aria-label="Tetszik"') ? i + " Tetszik" : "Nem talált"
-    );
-    //console.log(j+"\n"+i);
-  }
-  console.log("like tartalma:\n" + like);
-  try {
-    await buttons[like[0]].click();
-  } catch (err) {
-    console.log(err);
-  }
+      let like = [];
+      //like.push(99999);
+      for (i in buttons) {
+        let j = await page.evaluate((el) => el.innerHTML, buttons[i]);
+        
+        if (j.includes('aria-label="Tetszik"')) {
+          like.push(i);
+          //console.log("pushed to like:" + i);
+        }
+      }
+      try {
+        await buttons[like[0]].click();
+      } catch (err) {
+        console.log(err);
+      }
 
   //}
 
