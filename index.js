@@ -1,7 +1,10 @@
-//including http basic module to create UI
+//including basic modules to create UI
 const http=require("http");
-const url=require("url");
+//const url=require("url");
 const qs=require("querystring");
+const events = require("events");
+var em = new events.EventEmitter();
+
 
 //including puppeteer "web browser manipulator"
 const puppeteer = require("puppeteer");
@@ -15,7 +18,62 @@ const readline = require("readline").createInterface({
 const fs = require("fs"); //including FileStream so we can read and write files
 const { Console } = require("console");
 
-const PORT=8080; 
+const PORT=8080;
+
+class User{
+
+  constructor(username,passw){
+    this.userName=username;
+    this.passw=passw;
+    this.verifCode=null;
+    this.verifBool=null;
+  }
+
+  get name(){
+    return this.userName;
+  }
+
+  set name(name){
+    this.userName=name;
+  }
+
+  get pwrd(){
+    return this.passw;
+  }
+
+  set pwrd(passw){
+    this.passw=passw;
+  }
+
+  get verifcode(){
+    return this.verifCode;
+  }
+
+  set verifcode(code){
+
+    this.verifCode=code;
+
+  }
+
+  get verifbool(){
+    return this.verifBool;
+  }
+
+  set verifbool(bool){
+
+    this.verifBool=bool;
+
+  }
+
+    toString(){
+      return "User data: "+this.userName+" | "+this.passw+" | "+this.verifCode+" | "+this.verifBool;
+    }
+
+}
+
+myUser=new User("","");
+
+console.log(myUser.toString());
 
 fs.readFile("./index.html",(err,html)=>{
 
@@ -23,12 +81,49 @@ fs.readFile("./index.html",(err,html)=>{
 
   http.createServer(function(req, res) { 
   let body='';
-  let 
-
-  res.writeHeader(200, {"Content-Type": "text/html"});  
-  res.write(html);  
-  res.end();
+  if(req.method==='GET'){
+    if(req.url=='/'){ 
+    res.writeHeader(200, {"Content-Type": "text/html"});  
+    console.log("form");
+    res.write(html);  
+    res.end();
+  }else if(req.url=='/verifCode'){
+      res.writeHeader(200, {"Content-Type": "text/html"});  
+      //res.write();  
+      console.log("verif");
+      fs.readFile("./verif.html",(err,data)=>{res.write(data);});
+      res.end();
+    }
+  }
+ 
   
+
+/*
+    redirectet megkell csinálni
+    talán
+    if(req.method==='GET'){
+      if(req.url=='/'){...}
+      if(req.url=='/verifCode'){...}
+    }
+*/
+
+  em.on("verifNeeded",()=>{
+    console.log("\n\nVerif\tNeeded\n\n");
+
+    verifHtml=fs.readFileSync("./verif.html","utf-8");
+      console.log("\n\tReading\n"); 
+      console.log(verifHtml); 
+    /*res.writeHeader(200, {"Content-Type": "text/html"});  
+    res.url="/verifCode";
+    res.write(data);  
+    res.end();*/
+   
+    res.writeHeader(302, {'Location': 'http://localhost:8080/verifCode'});
+    res.write(verifHtml);
+    res.end();
+
+  });
+
   if(req.method === 'POST')
   {
   
@@ -37,11 +132,26 @@ fs.readFile("./index.html",(err,html)=>{
   });
   
   req.on("end",()=>{
+
     var post = qs.parse(body);
-    console.log(post);
+    if(req.url=="/"){
+    //console.log(post["email"]+"\n"+post["pword"]+"\n"+post["verifi"]);
+    myUser.name=post["email"];
+    myUser.pwrd=post["pword"];
+    myUser.verifbool=post["verifi"];
+    console.log(myUser.toString());
+    liker(myUser.name,myUser.pwrd, myUser.verifBool);
+    //req.emit("verifNeeded","Verification needed!");
+  }else if(req.url=="/verifCode"){
+
+      myUser.verifCode=post["verifCode"];
+      console.log(myUser.name+" - "+myUser.verifcode);
+    }
+
 
   });
   
+
   }
   }).listen(PORT);
 });
@@ -63,7 +173,6 @@ async function liker(uname,pword,bool2step) {
   try {
     tags = fs.readFileSync("Tags.txt", "utf-8").split("\r\n"); //reading Tags.txt and splitting the string at enters
 
-    //console.log(tags);//writing out the content of tags variable for debugging purposes.
   } catch (err) {
     //error message
     console.error(
@@ -81,6 +190,8 @@ async function liker(uname,pword,bool2step) {
 
   const page = await browser.newPage();
   await page.goto("https://www.instagram.com/");
+
+  em.emit("verifNeeded");
 
   try {
     await page.waitForNetworkIdle();
@@ -118,7 +229,7 @@ async function liker(uname,pword,bool2step) {
   let uname;
   let pword;
   */
- 
+
   /**
    * -------------
    * -IF ELSE- FOR 2 STEP AUTH WHETHER IT IS ENABLED OR NOT
