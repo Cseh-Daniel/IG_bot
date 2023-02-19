@@ -75,23 +75,19 @@ myUser=new User("","");
 
 console.log(myUser.toString());
 
-fs.readFile("./index.html",(err,html)=>{
-
-  if(err){throw err}
-
   http.createServer(function(req, res) { 
   let body='';
   if(req.method==='GET'){
     if(req.url=='/'){ 
     res.writeHeader(200, {"Content-Type": "text/html"});  
     console.log("form");
-    res.write(html);  
+   res.write(fs.readFileSync("./index.html","utf-8"));
     res.end();
   }else if(req.url=='/verifCode'){
       res.writeHeader(200, {"Content-Type": "text/html"});  
       //res.write();  
       console.log("verif");
-      fs.readFile("./verif.html",(err,data)=>{res.write(data);});
+      res.write(fs.readFileSync("./verif.html","utf-8"));
       res.end();
     }
   }
@@ -108,18 +104,9 @@ fs.readFile("./index.html",(err,html)=>{
 */
 
   em.on("verifNeeded",()=>{
-    console.log("\n\nVerif\tNeeded\n\n");
-
-    verifHtml=fs.readFileSync("./verif.html","utf-8");
-      console.log("\n\tReading\n"); 
-      console.log(verifHtml); 
-    /*res.writeHeader(200, {"Content-Type": "text/html"});  
-    res.url="/verifCode";
-    res.write(data);  
-    res.end();*/
-   
-    res.writeHeader(302, {'Location': 'http://localhost:8080/verifCode'});
-    res.write(verifHtml);
+    console.log("\nVerif\tNeeded\n");
+    res.writeHeader(302, {'Location': '/verifCode'});
+    res.write(fs.readFileSync("./verif.html","utf-8"));
     res.end();
 
   });
@@ -127,35 +114,34 @@ fs.readFile("./index.html",(err,html)=>{
   if(req.method === 'POST')
   {
   
-  req.on("data",data=>{
-    body+=data;
-  });
-  
-  req.on("end",()=>{
+      req.on("data",data=>{
+        body+=data;
+      });
+      
+      req.on("end",()=>{
 
-    var post = qs.parse(body);
-    if(req.url=="/"){
-    //console.log(post["email"]+"\n"+post["pword"]+"\n"+post["verifi"]);
-    myUser.name=post["email"];
-    myUser.pwrd=post["pword"];
-    myUser.verifbool=post["verifi"];
-    console.log(myUser.toString());
-    liker(myUser.name,myUser.pwrd, myUser.verifBool);
-    //req.emit("verifNeeded","Verification needed!");
-  }else if(req.url=="/verifCode"){
+          var post = qs.parse(body);
+          if(req.url=="/"){
 
-      myUser.verifCode=post["verifCode"];
-      console.log(myUser.name+" - "+myUser.verifcode);
-    }
+          myUser.name=post["email"];
+          myUser.pwrd=post["pword"];
+          myUser.verifbool=post["verifi"];
+          console.log(myUser.toString());
+          liker(myUser.name,myUser.pwrd, myUser.verifBool);
+
+        }else if(req.url=="/verifCode"){
+
+            myUser.verifCode=post["verifCode"];
+            console.log(myUser.name+" - "+myUser.verifcode);
+            //em.emit("verifSuccess","Verification code successfully given!");
+          }
 
 
-  });
-  
+      });
+      
 
   }
   }).listen(PORT);
-});
-
 
 
 console.log("Server started on "+PORT);
@@ -164,9 +150,10 @@ console.log("Server started on "+PORT);
 
 async function liker(uname,pword,bool2step) {
   //reading the given hashtags
-
   let tags = ""; //declaring the variable that will store the values stored in "Tags.txt"
   let err;
+
+
 
   //try catch for reading Tags.txt
   //if error it gives a message with a short manual
@@ -191,18 +178,15 @@ async function liker(uname,pword,bool2step) {
   const page = await browser.newPage();
   await page.goto("https://www.instagram.com/");
 
-  em.emit("verifNeeded");
+
 
   try {
     await page.waitForNetworkIdle();
   } catch (err) {
     console.log(err + "\nProblem while loading the login page!");
   }
-  //buttons=await page.$$("button");
 
-  //buttons= await page.$$eval("button",el=>{console.log(el);});
   buttons = await page.$$("button");
-  //console.log(buttons);
   let element;
 
   for (i in buttons) {
@@ -219,7 +203,7 @@ async function liker(uname,pword,bool2step) {
     console.log(e + "\nCookie error");
     return -1;
 
-    //process.exit(-1);
+
   }
 
   //wait for popup window to disappear and login inputs get visible
@@ -236,7 +220,7 @@ async function liker(uname,pword,bool2step) {
    * -------------
    */
 
-  do {
+  /*do {
     bool2step = await new Promise((el) => {
       readline.question("Is 2-step authentication enabled?(Y/N):", el);
     });
@@ -248,8 +232,11 @@ async function liker(uname,pword,bool2step) {
   );
 
   bool2step = bool2step === "Y" || bool2step === "y" ? true : false;
+  */
+
   //console.log("bool: "+bool2step);
 
+  /*
   uname = await new Promise((el) => {
     readline.question("Your E-mail/username please:", el);
   });
@@ -261,6 +248,7 @@ async function liker(uname,pword,bool2step) {
   } while (pword.length < 6);
 
   console.log("Your pw starts with " + pword.substring(0, 2));
+*/
 
   let elements = await page.$$("input[name=username]");
   //console.log(elements);
@@ -298,15 +286,30 @@ After click wait for page loading in otherwise the input field for 2step auth wo
   }
 
   if (bool2step) {
-    elements = await page.$$("input[name=verificationCode]");
 
-    authCode = await new Promise((el) => {
-      readline.question("Your 2-step verification code:", el);
-    });
+      elements = await page.$$("input[name=verificationCode]");
 
-    await elements[0].type(authCode);
-    elements = await page.$$("button[type=button]");
-    await elements[0].click();
+      /*authCode = await new Promise((el) => {
+        readline.question("Your 2-step verification code:", el);
+      
+      });*/
+
+      em.emit("verifNeeded");
+      
+      while(myUser.verifcode==null){
+        await page.waitForTimeout(2000);
+        console.log("2 sec passed!");
+      }
+
+        await elements[0].type(myUser.verifcode);
+        elements = await page.$$("button[type=button]");
+        await elements[0].click();
+
+      /*
+      await elements[0].type(authCode);
+      elements = await page.$$("button[type=button]");
+      await elements[0].click();
+      */
   }
   console.log("\nStart network idle wait seconds----\n");
   //await page.waitForTimeout(2500);
@@ -423,11 +426,15 @@ After click wait for page loading in otherwise the input field for 2step auth wo
   console.log("Content of goodLinks:\n");
   console.log(goodLinks);
 
+  //------- No need for dropping the first 9 posts synce it won't unlike them if already liked
+
   //dropping first 9 links cuz they are the popular ones and usually they are the same 9, and not changing a for a long while
 
-  for (i = 0; i < 9; i++) {
+  /*for (i = 0; i < 9; i++) {
     goodLinks.shift();
-  }
+  }*/
+
+  //---------------------
 
   //for(i in goodLinks){
 
@@ -442,9 +449,6 @@ After click wait for page loading in otherwise the input field for 2step auth wo
             await page.$eval('button', e => e.innerHTML)
         */
 
-  //let like = await page.$eval("button > div > svg",el=>el.getAttribute('aria-label'));
-  //console.log(like.length);
-  //console.log(likes);
 
   let like = [];
   //like.push(99999);
