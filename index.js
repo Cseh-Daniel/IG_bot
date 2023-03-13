@@ -414,7 +414,11 @@ for(pi in pages){
           await page.waitForTimeout(2000);
           console.log("looking for Like button");
 
-          buttons = await page.$$("button");
+          // /html/body/div[2]/div/div/div[1]/div/div/div/div[1]/div[1]/div[2]/section/main/div[1]/div[1]/article/div/div[2]/div/div[2]/section[1]/span[1]/button
+          // div>section>span>button
+          //buttons = await page.$$("button");
+          buttons = await page.$$("div>section>span>button");
+
 
           let like = [];
           
