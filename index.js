@@ -76,7 +76,7 @@ class User{
 
   }
 
-    toString(){
+   toString(){
       return "User data: "+this.userName+" | "+this.passw+" | "+this.verifCode+" | "+this.verifBool;
     }
 
@@ -132,6 +132,7 @@ console.log(myUser.toString());
 
   });
 
+/*
   em.once("likedLinks",(data)=>{
     console.log("Links arrieved");
     //console.log(data);
@@ -141,6 +142,7 @@ console.log(myUser.toString());
 
     res.end();
   });
+*/
 
   if(req.method === 'POST')
   {
@@ -157,13 +159,14 @@ console.log(myUser.toString());
           myUser.name=post["email"];
           myUser.pwrd=post["pword"];
           myUser.verifbool=post["verifi"];
-          console.log(myUser.toString());
+          console.log(String(myUser));
           liker(myUser.name,myUser.pwrd, myUser.verifBool);
 
         }else if(req.url=="/verifCode"){
 
             myUser.verifCode=post["verifCode"];
-            console.log(myUser.name+" - "+myUser.verifcode);
+            //console.log(myUser.name+" - "+myUser.verifcode);
+            console.log(String(myUser));
             //res.end();
             //em.emit("verifSuccess","Verification code successfully given!");
           }
@@ -240,47 +243,6 @@ async function liker(uname,pword,bool2step) {
 
   //wait for popup window to disappear and login inputs get visible
   await page.waitForTimeout(2500);
-  /*
-  let bool2step;
-  let uname;
-  let pword;
-  */
-
-  /*
-   * -------------
-   * -IF ELSE- FOR 2 STEP AUTH WHETHER IT IS ENABLED OR NOT
-   * -------------
-   */
-
-  /*do {
-    bool2step = await new Promise((el) => {
-      readline.question("Is 2-step authentication enabled?(Y/N):", el);
-    });
-  } while (
-    bool2step != "Y" &&
-    bool2step != "N" &&
-    bool2step != "y" &&
-    bool2step != "n"
-  );
-
-  bool2step = bool2step === "Y" || bool2step === "y" ? true : false;
-  */
-
-  //console.log("bool: "+bool2step);
-
-  /*
-  uname = await new Promise((el) => {
-    readline.question("Your E-mail/username please:", el);
-  });
-
-  do {
-    pword = await new Promise((el) => {
-      readline.question("Your password please:", el);
-    });
-  } while (pword.length < 6);
-
-  console.log("Your pw starts with " + pword.substring(0, 2));
-*/
 
   let elements = await page.$$("input[name=username]");
   //console.log(elements);
@@ -396,89 +358,83 @@ After click wait for page loading in otherwise the input field for 2step auth wo
    * eg:https://www.instagram.com/explore/tags/kingdomhearts/
    */
 
-  let url = "https://www.instagram.com/explore/tags/";
-  
-  url = url.concat(tags[0].slice(1), "/");
-  console.log(url);
-  await page.goto(url);
+  let baseUrl = "https://www.instagram.com/explore/tags/";
+  let pages=[];
 
-  try {
-    await page.waitForTimeout(5000);
-    
-    //await page.waitForNetworkIdle();
-    //await page.waitForNetworkIdle({idleTime:1500});
-    //await page.waitForNavigation({waitUntil: 'networkidle2'});
-  
-  } catch (err) {
-    console.log("");
-  }
 
-  await page.waitForTimeout(1000);
-  //page.scrollBy(0,page.innerHeight);
-  page.evaluate((_) => {
-    window.scrollBy(0, window.innerHeight * 10);
-  });
-  await page.waitForTimeout(10000);
-  let posts = await page.$$("a");
-  console.log("\tFound posts:" + posts.length);
-  let goodLinks = [];
-  for (i in posts) {
-    let link = await page.evaluate((el) => el.href, posts[i]);
-    //console.log("\n"+link);
-    if (link.includes("/p/")) {
-      goodLinks.push(link);
-    }
+  for(i in tags){
+    pages.push(baseUrl.concat(tags[i].slice(1), "/"));
   }
 
 
-  em.emit("likedLinks",goodLinks);
+  console.log(pages);
 
+for(pi in pages){
   
-  
-  //console.log("Content of goodLinks:\n");
-  //console.log(goodLinks);
 
-  //-------------------- No need for dropping the first 9 posts synce it won't unlike them if already liked
+      //await page.goto(pages[0]);
+      await page.goto(pages[pi]);
 
-  //dropping first 9 links cuz they are the popular ones and usually they are the same 9, and not changing a for a long while
-
-  /*for (i = 0; i < 9; i++) {
-    goodLinks.shift();
-  }*/
-
-  //---------------------
-
-  //for(i in goodLinks){
-
-      await page.goto(goodLinks[0]);
-      //await page.goto(goodLinks[i]);
-
-      await page.waitForTimeout(4000);
-      console.log("looking for Like button");
-
-      buttons = await page.$$("button");
-
-      let like = [];
-      //like.push(99999);
-      for (i in buttons) {
-        let j = await page.evaluate((el) => el.innerHTML, buttons[i]);
+      try {
+        await page.waitForTimeout(5000);
         
-        if (j.includes('aria-label="Tetszik"')) {
-          like.push(i);
-          //console.log("pushed to like:" + i);
+        //await page.waitForNetworkIdle();
+        //await page.waitForNetworkIdle({idleTime:1500});
+        //await page.waitForNavigation({waitUntil: 'networkidle2'});
+      
+      } catch (err) {
+        console.log("");
+      }
+
+      await page.waitForTimeout(1000);
+      //page.scrollBy(0,page.innerHeight);
+      page.evaluate((_) => {
+        window.scrollBy(0, window.innerHeight * 10);
+      });
+      await page.waitForTimeout(10000);
+      let posts = await page.$$("a");
+      console.log("\tFound posts:" + posts.length);
+      let goodLinks = [];
+      for (i in posts) {
+        let link = await page.evaluate((el) => el.href, posts[i]);
+        //console.log("\n"+link);
+        if (link.includes("/p/")) {
+          goodLinks.push(link);
         }
       }
-      try {
-        await buttons[like[0]].click();
-      } catch (err) {
-        console.log(err);
+
+
+      //em.emit("likedLinks",goodLinks);
+
+      for(i in goodLinks){
+
+          await page.goto(goodLinks[i]);
+          //await page.goto(goodLinks[0]);
+
+          await page.waitForTimeout(2000);
+          console.log("looking for Like button");
+
+          buttons = await page.$$("button");
+
+          let like = [];
+          
+          for (i in buttons) {
+            let j = await page.evaluate((el) => el.innerHTML, buttons[i]);
+            
+            if (j.includes('aria-label="Tetszik"')) {
+              like.push(i);
+              
+            }
+          }
+          try {
+            await buttons[like[0]].click();
+          } catch (err) {
+            console.log(err);
+          }
+
       }
-
-  //}
-
+    }
   /**
    * end of liker
    **/
 }
-
-//liker();
