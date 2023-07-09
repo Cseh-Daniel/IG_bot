@@ -1,7 +1,7 @@
 //including basic modules to create UI
-const http=require("http");
+const http = require("http");
 //const url=require("url");
-const qs=require("querystring");
+const qs = require("querystring");
 const events = require("events");
 var em = new events.EventEmitter();
 
@@ -16,174 +16,173 @@ const readline = require("readline").createInterface({
 });
 
 const fs = require("fs"); //including FileStream so we can read and write files
-const { Console } = require("console");
+const { Console, log } = require("console");
 
-const PORT=8080;
+const PORT = 8080;
 
-class User{
+class User {
 
-  constructor(username,passw){
-    this.userName=username;
-    this.passw=passw;
-    this.verifCode=null;
-    this.verifBool=null;
-    this.links=[];
+  constructor(username, passw) {
+    this.userName = username;
+    this.passw = passw;
+    this.verifCode = null;
+    this.verifBool = null;
+    this.links = [];
   }
 
-  get posts(){
+  get posts() {
 
     return this.links;
 
   }
 
-  set posts(data){
-    this.links=data;
+  set posts(data) {
+    this.links = data;
   }
 
-  get name(){
+  get name() {
     return this.userName;
   }
 
-  set name(name){
-    this.userName=name;
+  set name(name) {
+    this.userName = name;
   }
 
-  get pwrd(){
+  get pwrd() {
     return this.passw;
   }
 
-  set pwrd(passw){
-    this.passw=passw;
+  set pwrd(passw) {
+    this.passw = passw;
   }
 
-  get verifcode(){
+  get verifcode() {
     return this.verifCode;
   }
 
-  set verifcode(code){
+  set verifcode(code) {
 
-    this.verifCode=code;
+    this.verifCode = code;
 
   }
 
-  get verifbool(){
+  get verifbool() {
     return this.verifBool;
   }
 
-  set verifbool(bool){
+  set verifbool(bool) {
 
-    this.verifBool=bool;
+    this.verifBool = bool;
 
   }
 
-   toString(){
-      return "User data: "+this.userName+" | "+this.passw+" | "+this.verifCode+" | "+this.verifBool;
-    }
+  toString() {
+    return "User data: " + this.userName + " | " + this.passw + " | " + this.verifCode + " | " + this.verifBool;
+  }
 
 }
 
-myUser=new User("","");
+myUser = new User("", "");
 
 console.log(myUser.toString());
 
-  http.createServer(function(req, res) { 
-  let body='';
-  if(req.method==='GET'){
-    if(req.url=='/'){ 
-    res.writeHeader(200, {"Content-Type": "text/html"});  
-    console.log("form");
-   res.write(fs.readFileSync("./index.html","utf-8"));
-    res.end();
-  }else if(req.url=='/verifCode'){
-      res.writeHeader(200, {"Content-Type": "text/html"});  
+http.createServer(function (req, res) {
+  let body = '';
+  if (req.method === 'GET') {
+    if (req.url == '/') {
+      res.writeHeader(200, { "Content-Type": "text/html" });
+      console.log("form");
+      res.write(fs.readFileSync("./index.html", "utf-8"));
+      res.end();
+    } else if (req.url == '/verifCode') {
+      res.writeHeader(200, { "Content-Type": "text/html" });
       //res.write();  
       console.log("verif");
-      res.write(fs.readFileSync("./verif.html","utf-8"));
+      res.write(fs.readFileSync("./verif.html", "utf-8"));
       res.end();
-    }else if(req.url=='/likedLinks'){
+    } else if (req.url == '/likedLinks') {
       /*
           az összes link kiíratását inkább tegyük csak txt-be
           vagy csak annyit írjunk ki h éppen melyik hashtag linkjeinél járunk
       */
 
-      let cssInclude='<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">';
-      let scriptInclude='<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>';
+      let cssInclude = '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">';
+      let scriptInclude = '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>';
 
-      let content="<html><head><title>Links</title>"+cssInclude+"</head><body>"+scriptInclude+"<table class='table table-striped'>"
-      for (i in myUser.posts){
-  
-        content+="<tr><td><a href='"+myUser.posts[i]+"'target='_blank'>"+myUser.posts[i]+"</a></td></tr>";
+      let content = "<html><head><title>Links</title>" + cssInclude + "</head><body>" + scriptInclude + "<table class='table table-striped'>"
+      for (i in myUser.posts) {
+
+        content += "<tr><td><a href='" + myUser.posts[i] + "'target='_blank'>" + myUser.posts[i] + "</a></td></tr>";
       }
-      content+="</table></body></html>";
+      content += "</table></body></html>";
       //console.log(content);
       res.write(content);
       res.end();
 
     }
-  
-  }
- 
 
-  em.on("verifNeeded",()=>{
+  }
+
+
+  em.on("verifNeeded", () => {
     console.log("\nVerif\tNeeded\n");
-    res.writeHeader(302, {'Location': '/verifCode'});
+    res.writeHeader(302, { 'Location': '/verifCode' });
     //res.write(fs.readFileSync("./verif.html","utf-8"));
     res.end();
 
   });
 
-/*
-  em.once("likedLinks",(data)=>{
-    console.log("Links arrieved");
-    //console.log(data);
-    res.writeHeader(302, {'Location': '/likedLinks'});
-
-    myUser.posts=data;
-
-    res.end();
-  });
-*/
-
-  if(req.method === 'POST')
-  {
+  /*
+    em.once("likedLinks",(data)=>{
+      console.log("Links arrieved");
+      //console.log(data);
+      res.writeHeader(302, {'Location': '/likedLinks'});
   
-      req.on("data",data=>{
-        body+=data;
-      });
-      
-      req.on("end",()=>{
+      myUser.posts=data;
+  
+      res.end();
+    });
+  */
 
-          var post = qs.parse(body);
-          if(req.url=="/"){
+  if (req.method === 'POST') {
 
-          myUser.name=post["email"];
-          myUser.pwrd=post["pword"];
-          myUser.verifbool=post["verifi"];
-          console.log(String(myUser));
-          liker(myUser.name,myUser.pwrd, myUser.verifBool);
+    req.on("data", data => {
+      body += data;
+    });
 
-        }else if(req.url=="/verifCode"){
+    req.on("end", () => {
 
-            myUser.verifCode=post["verifCode"];
-            //console.log(myUser.name+" - "+myUser.verifcode);
-            console.log(String(myUser));
-            //res.end();
-            //em.emit("verifSuccess","Verification code successfully given!");
-          }
+      var post = qs.parse(body);
+      if (req.url == "/") {
+
+        myUser.name = post["email"];
+        myUser.pwrd = post["pword"];
+        myUser.verifbool = post["verifi"];
+        console.log(String(myUser));
+        liker(myUser.name, myUser.pwrd, myUser.verifBool);
+
+      } else if (req.url == "/verifCode") {
+
+        myUser.verifCode = post["verifCode"];
+        //console.log(myUser.name+" - "+myUser.verifcode);
+        console.log(String(myUser));
+        //res.end();
+        //em.emit("verifSuccess","Verification code successfully given!");
+      }
 
 
-      });
-      
+    });
+
 
   }
-  }).listen(PORT);
+}).listen(PORT);
 
 
-console.log("Server started on "+PORT);
+console.log("Server started on " + PORT);
 
 
 
-async function liker(uname,pword,bool2step) {
+async function liker(uname, pword, bool2step) {
   //reading the given hashtags
   let tags = ""; //declaring the variable that will store the values stored in "Tags.txt"
   let err;
@@ -199,8 +198,8 @@ async function liker(uname,pword,bool2step) {
     //error message
     console.error(
       "---------------\r\nError Arose\r\n" +
-        err +
-        "\r\n---------------\r\nCheck the file name.\nIt should be called exactly like 'Tags.txt' with capital T and placed in the root folder."
+      err +
+      "\r\n---------------\r\nCheck the file name.\nIt should be called exactly like 'Tags.txt' with capital T and placed in the root folder."
     );
   }
 
@@ -226,7 +225,7 @@ async function liker(uname,pword,bool2step) {
 
   for (i in buttons) {
     let text = await page.evaluate((el) => el.textContent, buttons[i]);
-    if (text.includes("Csak a") || text.includes("Only allow")) {
+    if (text.includes("A nem kötelező cookie") || text.includes("Only allow")) {
       element = buttons[i];
       console.log("megtaláltam!");
     }
@@ -281,22 +280,22 @@ After click wait for page loading in otherwise the input field for 2step auth wo
 
   if (bool2step) {
 
-      elements = await page.$$("input[name=verificationCode]");
+    elements = await page.$$("input[name=verificationCode]");
 
-      /*authCode = await new Promise((el) => {
-        readline.question("Your 2-step verification code:", el);
-      });*/
+    /*authCode = await new Promise((el) => {
+      readline.question("Your 2-step verification code:", el);
+    });*/
 
-       em.emit("verifNeeded");
-      
-      while(myUser.verifcode==null){
-        await page.waitForTimeout(2000);
-        console.log("2 sec passed!");
-      }
+    em.emit("verifNeeded");
 
-        await elements[0].type(myUser.verifcode);
-        elements = await page.$$("button[type=button]");
-        await elements[0].click();
+    while (myUser.verifcode == null) {
+      await page.waitForTimeout(2000);
+      console.log("2 sec passed!");
+    }
+
+    await elements[0].type(myUser.verifcode);
+    elements = await page.$$("button[type=button]");
+    await elements[0].click();
   }
   console.log("\nStart network idle wait seconds----\n");
   //await page.waitForTimeout(2500);
@@ -310,40 +309,46 @@ After click wait for page loading in otherwise the input field for 2step auth wo
 
   console.log("\nEnd network idle wait seconds----\n");
 
-  //pressing don't save login credentials
-  elements = await page.$$("button");
-  console.log("elements:\n" + elements.length + "\n\n");
-  //await elements[0].click();
+  /**-------------------------------- */
 
-  for (i in elements) {
-    let text = await page.evaluate((el) => el.textContent, elements[i]);
-    //console.log("\n"+text+"\n");
-    if (text.includes("Most nem") || text.includes("Not Now")) {
-      element = elements[i];
-      console.log("megtaláltam! auth data");
-    }
-  }
-  console.log("\nclick1");
-  await element.click();
-  console.log("\nclick2");
+  // //pressing don't save login credentials
+  // elements = await page.$$("button");
+  // console.log("elements:\n" + elements.length + "\n\n");
+  // //await elements[0].click();
 
-  await page.waitForTimeout(2500);
+  // for (i in elements) {
+  //   let text = await page.evaluate((el) => el.textContent, elements[i]);
+  //   //console.log("\n"+text+"\n");
+  //   if (text.includes("Most nem") || text.includes("Not Now")) {
+  //     element = elements[i];
+  //     console.log("megtaláltam! auth data");
+  //   }
+  // }
+  // console.log("\nclick1");
+  // await element.click();
+  // console.log("\nclick2");
 
-  //pressing no for notifications
-  elements = await page.$$("button");
+  // await page.waitForTimeout(2500);
 
-  for (i in elements) {
-    let text = await page.evaluate((el) => el.textContent, elements[i]);
-    //console.log("\n"+text+"\n");
+  // //pressing no for notifications
+  // elements = await page.$$("button");
 
-    if (text.includes("Most nem") || text.includes("Not Now")) {
-      element = elements[i];
-      console.log("megtaláltam! notify");
-    }
-  }
+  // for (i in elements) {
+  //   let text = await page.evaluate((el) => el.textContent, elements[i]);
+  //   //console.log("\n"+text+"\n");
 
-  await element.click();
-  await page.waitForTimeout(2500);
+  //   if (text.includes("Most nem") || text.includes("Not Now")) {
+  //     element = elements[i];
+  //     console.log("megtaláltam! notify");
+  //   }
+  // }
+
+  // await element.click();
+  // await page.waitForTimeout(2500);
+
+  /**-------------------------------- */
+
+
   console.log("Logged in");
   /**
    *
@@ -359,85 +364,91 @@ After click wait for page loading in otherwise the input field for 2step auth wo
    */
 
   let baseUrl = "https://www.instagram.com/explore/tags/";
-  let pages=[];
+  let pages = [];
 
 
-  for(i in tags){
+  for (i in tags) {
     pages.push(baseUrl.concat(tags[i].slice(1), "/"));
   }
 
 
   console.log(pages);
 
-for(pi in pages){
-  
+  for (pi in pages) {
 
-      //await page.goto(pages[0]);
-      await page.goto(pages[pi]);
 
-      try {
-        await page.waitForTimeout(5000);
-        
-        //await page.waitForNetworkIdle();
-        //await page.waitForNetworkIdle({idleTime:1500});
-        //await page.waitForNavigation({waitUntil: 'networkidle2'});
-      
-      } catch (err) {
-        console.log("");
+    //await page.goto(pages[0]);
+    await page.goto(pages[pi]);
+
+    try {
+      await page.waitForTimeout(5000);
+
+      //await page.waitForNetworkIdle();
+      //await page.waitForNetworkIdle({idleTime:1500});
+      //await page.waitForNavigation({waitUntil: 'networkidle2'});
+
+    } catch (err) {
+      console.log("");
+    }
+
+    await page.waitForTimeout(1000);
+    //page.scrollBy(0,page.innerHeight);
+    page.evaluate((_) => {
+      window.scrollBy(0, window.innerHeight * 10);
+    });
+    await page.waitForTimeout(10000);
+    let posts = await page.$$("a");
+    console.log("\tFound posts:" + posts.length);
+    let goodLinks = [];
+    for (i in posts) {
+      let link = await page.evaluate((el) => el.href, posts[i]);
+      //console.log("\n"+link);
+      if (link.includes("/p/")) {
+        goodLinks.push(link);
       }
+    }
 
-      await page.waitForTimeout(1000);
-      //page.scrollBy(0,page.innerHeight);
-      page.evaluate((_) => {
-        window.scrollBy(0, window.innerHeight * 10);
-      });
-      await page.waitForTimeout(10000);
-      let posts = await page.$$("a");
-      console.log("\tFound posts:" + posts.length);
-      let goodLinks = [];
-      for (i in posts) {
-        let link = await page.evaluate((el) => el.href, posts[i]);
-        //console.log("\n"+link);
-        if (link.includes("/p/")) {
-          goodLinks.push(link);
+
+    //em.emit("likedLinks",goodLinks);
+
+    for (i in goodLinks) {
+
+      await page.goto(goodLinks[i]);
+      //await page.goto(goodLinks[0]);
+
+      await page.waitForTimeout(2000);
+      console.log("looking for Like button");
+
+      // /html/body/div[2]/div/div/div[1]/div/div/div/div[1]/div[1]/div[2]/section/main/div[1]/div[1]/article/div/div[2]/div/div[2]/section[1]/span[1]/button
+      // div>section>span>button
+      //buttons = await page.$$("button");
+      //buttons = await page.$$("div>section>span>button");
+      //buttons = await page.$$("div > span > svg > title");
+      buttons = await page.$$("div > span");
+
+
+      let like = [];
+
+      for (i in buttons) {
+        let j = await page.evaluate((el) => el.innerHTML, buttons[i]);
+
+        // console.log(j);
+
+        if (j.includes("<title>Tetszik</title>")) {
+          like.push(i);
         }
       }
 
-
-      //em.emit("likedLinks",goodLinks);
-
-      for(i in goodLinks){
-
-          await page.goto(goodLinks[i]);
-          //await page.goto(goodLinks[0]);
-
-          await page.waitForTimeout(2000);
-          console.log("looking for Like button");
-
-          // /html/body/div[2]/div/div/div[1]/div/div/div/div[1]/div[1]/div[2]/section/main/div[1]/div[1]/article/div/div[2]/div/div[2]/section[1]/span[1]/button
-          // div>section>span>button
-          //buttons = await page.$$("button");
-          buttons = await page.$$("div>section>span>button");
-
-
-          let like = [];
-          
-          for (i in buttons) {
-            let j = await page.evaluate((el) => el.innerHTML, buttons[i]);
-            
-            if (j.includes('aria-label="Tetszik"')) {
-              like.push(i);
-              
-            }
-          }
-          try {
-            await buttons[like[0]].click();
-          } catch (err) {
-            console.log(err);
-          }
-
+      //console.log(buttons);
+      let lgth = like.length - 1;
+      try {
+        await buttons[like[lgth]].click();
+      } catch (err) {
+        console.log(err);
       }
+
     }
+  }
   /**
    * end of liker
    **/
